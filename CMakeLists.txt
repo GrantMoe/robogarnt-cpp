@@ -9,6 +9,6 @@ project(robopi_garnt_cpp CXX)
 
 create_simple_executable(${PROJECT_NAME}
         RoboPiGarnt.cpp
-        Mcp3208.cpp
-        Servo.h
-        Servo.cpp)
+        Mcp3208.h
+        RoboGarntServo.h
+        RoboGarntMotor.h)

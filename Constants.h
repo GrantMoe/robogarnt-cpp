@@ -92,9 +92,9 @@ struct Servo {
 #define SERVO_MAX_POSTERIOR 1964
 
 #define NUM_SERVOS 2
-*/
+
  #define STEERING_GAIN 3.7
-/*
+
 // TODO: real pins
 const int servo_pins[NUM_SERVOS] = {1 , 2};
 Servo kAnteriorServo = {servo_pins[ANTERIOR],
@@ -108,7 +108,7 @@ Servo kPosteriorServo = {servo_pins[POSTERIOR],
 
 Servo servos[NUM_SERVOS] = {kAnteriorServo, kPosteriorServo};
 
- */
+
 
 // #define MOTOR_PIN 0
 // #define MOTOR_REVERSE_MIN 900
@@ -122,5 +122,6 @@ Servo servos[NUM_SERVOS] = {kAnteriorServo, kPosteriorServo};
 #define MOTOR_FORWARD_MAX 2090
 #define MOTOR_DEADBAND 25
 #define THROTTLE_GAIN 3.7 // calibrated to stop when one sensor hits min
+*/
 
 #endif //BASICGARNT_CONSTANTS_H

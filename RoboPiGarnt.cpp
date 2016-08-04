@@ -4,7 +4,8 @@
 #include "simpletools.h"
 #include "Mcp3208.h"
 #include "Constants.h"
-#include "Servo.h"
+#include "RoboGarntMotor.h"
+#include "RoboGarntServo.h"
 
 int main() {
 
@@ -14,13 +15,12 @@ int main() {
 
   int direction = FORWARD;
 
-  Servo anterior_servo(1, 1026, 1490, 1964, NORMAL);
-  Servo posterior_servo(2, 1026, 1490, 1964, FLIPPED);
-  Servo servos[] = {anterior_servo, posterior_servo};
+  RoboGarntServo anterior_servo(1, 1026, 1490, 1964, 3.7, NORMAL);
+  RoboGarntServo posterior_servo(2, 1026, 1490, 1964, 3.7, FLIPPED);
+  RoboGarntServo servos[] = {anterior_servo, posterior_servo};
 
+  RoboGarntMotor motor(0, 900, 1495, 25, 2090, 3.7);
 
-  //kAnteriorServo.steer_mode = NORMAL;
-  //kPosteriorServo.steer_mode = FLIPPED;
   int servo_setting;
   int motor_setting;
 
@@ -60,10 +60,6 @@ int main() {
 
     // simple instinctual counter-steering
     // TODO: introduce speed modifier(s)?
-
-    // kAnteriorServo.steer_mode = direction == FORWARD ? NORMAL : FLIPPED;
-    // kPosteriorServo.steer_mode = direction == FORWARD ? FLIPPED : NORMAL;
-
     anterior_servo.set_steer_mode(direction == FORWARD ? NORMAL : FLIPPED);
     posterior_servo.set_steer_mode(direction == FORWARD ? FLIPPED : NORMAL);
 
@@ -71,7 +67,7 @@ int main() {
     for (int i = 0; i < 2; i++) {
       // steer
       servo_setting = servos[i].get_neutral() + servos[i].get_steer_mode()
-          * (int) (STEERING_GAIN * (
+          * (int) (servos[i].get_steering_gain_() * (
           ((MAX_SENSE_RANGE - nav_array[LEFT_LATERAL])
               * IR_COS[LEFT_LATERAL])
               + ((MAX_SENSE_RANGE - nav_array[LEFT_MEDIAL])
@@ -81,21 +77,13 @@ int main() {
               + ((MAX_SENSE_RANGE - nav_array[RIGHT_LATERAL])
                   * IR_COS[RIGHT_LATERAL])));
 
-      if (servo_setting > servos[i].get_max())
-        servo_setting = servos[i].get_max();
-      if (servo_setting < servos[i].get_min())
-        servo_setting = servos[i].get_min();
-
-      // cut off extreme (out of rance) values
-      servo_setting = servos[i].LimitCheck(servo_setting);
-
       // set servos
-      pwm.Servo(servos[i].get_pin(), servo_setting);
+      pwm.Servo(servos[i].get_pin(), servos[i].LimitCheck(servo_setting));
     }
 
     // throttle
     if (direction == FORWARD) {
-      motor_setting = MOTOR_FORWARD_MAX - (int) (THROTTLE_GAIN * (
+      motor_setting = motor.get_max() - (int) (motor.get_throttle_gain() * (
         ((MAX_SENSE_RANGE - nav_array[LEFT_LATERAL])
             * IR_SIN[LEFT_LATERAL])
           + ((MAX_SENSE_RANGE - nav_array[LEFT_MEDIAL])
@@ -105,13 +93,13 @@ int main() {
           + ((MAX_SENSE_RANGE - nav_array[RIGHT_LATERAL])
               * IR_SIN[RIGHT_LATERAL])));
 
-      if (motor_setting < (MOTOR_NEUTRAL + MOTOR_DEADBAND)) {
-        motor_setting = MOTOR_NEUTRAL;
+      if (motor_setting < (motor.get_neutral() + motor.get_deadband())) {
+        motor_setting = motor.get_neutral();
         direction = REVERSE;
       }
 
     } else if (direction == REVERSE) {
-      motor_setting = MOTOR_REVERSE_MIN + (int) (THROTTLE_GAIN * (
+      motor_setting = motor.get_reverse() + (int) (motor.get_throttle_gain() * (
         ((MAX_SENSE_RANGE - nav_array[LEFT_LATERAL])
             * IR_SIN[LEFT_LATERAL])
           + ((MAX_SENSE_RANGE - nav_array[LEFT_MEDIAL])
@@ -121,17 +109,17 @@ int main() {
           + ((MAX_SENSE_RANGE - nav_array[RIGHT_LATERAL])
               * IR_SIN[RIGHT_LATERAL])));
 
-      if (motor_setting > (MOTOR_NEUTRAL - MOTOR_DEADBAND)) {
-        motor_setting = MOTOR_NEUTRAL;
+      if (motor_setting > (motor.get_neutral() - motor.get_deadband())) {
+        motor_setting = motor.get_neutral();
         direction = FORWARD;
       }
 
     } else {
-      motor_setting = MOTOR_NEUTRAL;
+      motor_setting = motor.get_neutral();
     }
 
     // set motor
-    pwm.Servo(MOTOR_PIN, motor_setting);
+    pwm.Servo(motor.get_pin(), motor.LimitCheck(motor_setting));
   }
   return 0;
 }
