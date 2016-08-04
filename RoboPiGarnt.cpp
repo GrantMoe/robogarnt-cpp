@@ -15,11 +15,11 @@ int main() {
 
   int direction = FORWARD;
 
-  RoboGarntServo anterior_servo(1, 1026, 1490, 1964, 3.7, NORMAL);
-  RoboGarntServo posterior_servo(2, 1026, 1490, 1964, 3.7, FLIPPED);
+  RoboGarntServo anterior_servo(1, 1026, 1490, 1964, NORMAL);
+  RoboGarntServo posterior_servo(2, 1026, 1490, 1964, FLIPPED);
   RoboGarntServo servos[] = {anterior_servo, posterior_servo};
 
-  RoboGarntMotor motor(0, 900, 1495, 25, 2090, 3.7);
+  RoboGarntMotor motor(0, 900, 1495, 25, 2090);
 
   int servo_setting;
   int motor_setting;
@@ -67,15 +67,15 @@ int main() {
     for (int i = 0; i < 2; i++) {
       // steer
       servo_setting = servos[i].get_neutral() + servos[i].get_steer_mode()
-          * (int) (servos[i].get_steering_gain_() * (
-          ((MAX_SENSE_RANGE - nav_array[LEFT_LATERAL])
-              * IR_COS[LEFT_LATERAL])
-              + ((MAX_SENSE_RANGE - nav_array[LEFT_MEDIAL])
-                  * IR_COS[LEFT_MEDIAL])
-              + ((MAX_SENSE_RANGE - nav_array[RIGHT_MEDIAL])
-                  * IR_COS[RIGHT_MEDIAL])
-              + ((MAX_SENSE_RANGE - nav_array[RIGHT_LATERAL])
-                  * IR_COS[RIGHT_LATERAL])));
+          * (int) (RoboGarntServo::STEERING_GAIN
+              * (((MAX_SENSE_RANGE - nav_array[LEFT_LATERAL])
+                  * IR_COS[LEFT_LATERAL])
+                  + ((MAX_SENSE_RANGE - nav_array[LEFT_MEDIAL])
+                      * IR_COS[LEFT_MEDIAL])
+                  + ((MAX_SENSE_RANGE - nav_array[RIGHT_MEDIAL])
+                      * IR_COS[RIGHT_MEDIAL])
+                  + ((MAX_SENSE_RANGE - nav_array[RIGHT_LATERAL])
+                      * IR_COS[RIGHT_LATERAL])));
 
       // set servos
       pwm.Servo(servos[i].get_pin(), servos[i].LimitCheck(servo_setting));
@@ -83,15 +83,16 @@ int main() {
 
     // throttle
     if (direction == FORWARD) {
-      motor_setting = motor.get_max() - (int) (motor.get_throttle_gain() * (
-        ((MAX_SENSE_RANGE - nav_array[LEFT_LATERAL])
-            * IR_SIN[LEFT_LATERAL])
-          + ((MAX_SENSE_RANGE - nav_array[LEFT_MEDIAL])
-              * IR_SIN[LEFT_MEDIAL])
-          + ((MAX_SENSE_RANGE - nav_array[RIGHT_MEDIAL])
-              * IR_SIN[RIGHT_MEDIAL])
-          + ((MAX_SENSE_RANGE - nav_array[RIGHT_LATERAL])
-              * IR_SIN[RIGHT_LATERAL])));
+      motor_setting = motor.get_max()
+          - (int) (RoboGarntMotor::THROTTLE_GAIN
+              * (((MAX_SENSE_RANGE - nav_array[LEFT_LATERAL])
+                  * IR_SIN[LEFT_LATERAL])
+                  + ((MAX_SENSE_RANGE - nav_array[LEFT_MEDIAL])
+                      * IR_SIN[LEFT_MEDIAL])
+                  + ((MAX_SENSE_RANGE - nav_array[RIGHT_MEDIAL])
+                      * IR_SIN[RIGHT_MEDIAL])
+                  + ((MAX_SENSE_RANGE - nav_array[RIGHT_LATERAL])
+                      * IR_SIN[RIGHT_LATERAL])));
 
       if (motor_setting < (motor.get_neutral() + motor.get_deadband())) {
         motor_setting = motor.get_neutral();
@@ -99,15 +100,16 @@ int main() {
       }
 
     } else if (direction == REVERSE) {
-      motor_setting = motor.get_reverse() + (int) (motor.get_throttle_gain() * (
-        ((MAX_SENSE_RANGE - nav_array[LEFT_LATERAL])
-            * IR_SIN[LEFT_LATERAL])
-          + ((MAX_SENSE_RANGE - nav_array[LEFT_MEDIAL])
-              * IR_SIN[LEFT_MEDIAL])
-          + ((MAX_SENSE_RANGE - nav_array[RIGHT_MEDIAL])
-              * IR_SIN[RIGHT_MEDIAL])
-          + ((MAX_SENSE_RANGE - nav_array[RIGHT_LATERAL])
-              * IR_SIN[RIGHT_LATERAL])));
+      motor_setting = motor.get_reverse()
+          + (int) (RoboGarntMotor::THROTTLE_GAIN * (
+              ((MAX_SENSE_RANGE - nav_array[LEFT_LATERAL])
+                  * IR_SIN[LEFT_LATERAL])
+                  + ((MAX_SENSE_RANGE - nav_array[LEFT_MEDIAL])
+                      * IR_SIN[LEFT_MEDIAL])
+                  + ((MAX_SENSE_RANGE - nav_array[RIGHT_MEDIAL])
+                      * IR_SIN[RIGHT_MEDIAL])
+                  + ((MAX_SENSE_RANGE - nav_array[RIGHT_LATERAL])
+                      * IR_SIN[RIGHT_LATERAL])));
 
       if (motor_setting > (motor.get_neutral() - motor.get_deadband())) {
         motor_setting = motor.get_neutral();

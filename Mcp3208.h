@@ -1,45 +1,49 @@
 //
 // http://playground.arduino.cc/Code/MCP3208
 //
-#include <PropWare/PropWare.h>
-#include <PropWare/gpio/pin.h>
 
 #ifndef BASICGARNT_MCP3208_H
 #define BASICGARNT_MCP3208_H
 
+#define OUT 1
+#define IN 0
+#define HIGH 1
+#define LOW 0
+
 class Mcp3208
 {
  public:
-  Mcp3208(const uint8_t, const uint8_t, const uint8_t, const uint8_t);
+  Mcp3208(const int, const int, const int, const int);
   int ReadAdc(int);
 
  private:
 
-  PropWare::Pin out_pin_;
-  PropWare::Pin in_pin_;
-  PropWare::Pin clock_pin_;
-  PropWare::Pin select_pin_;
+  int out_pin_;
+  int in_pin_;
+  int clock_pin_;
+  int select_pin_;
 };
 
 #endif //BASICGARNT_MCP3208_H
 
-Mcp3208::Mcp3208(const uint8_t out_pin, const uint8_t in_pin, const uint8_t
-clock_pin, const uint8_t select_pin) {
+Mcp3208::Mcp3208(const int out_pin, const int in_pin, const int
+clock_pin, const int select_pin) {
 
   // set pin numbers and modes
-  out_pin_ = PropWare::Pin(PropWare::Port::convert(out_pin),
-                           PropWare::Pin::OUT);
-  in_pin_ = PropWare::Pin(PropWare::Port::convert(in_pin),
-                          PropWare::Pin::IN);
-  clock_pin_ = PropWare::Pin(PropWare::Port::convert(clock_pin),
-                             PropWare::Pin::OUT);
-  select_pin_ = PropWare::Pin(PropWare::Port::convert(select_pin),
-                              PropWare::Port::OUT);
+  out_pin_ = out_pin;
+  in_pin_ = in_pin;
+  clock_pin_ = clock_pin;
+  select_pin_ = select_pin;
+
+  set_direction(out_pin_, OUT);
+  set_direction(in_pin_, IN);
+  set_direction(clock_pin_, OUT);
+  set_direction(select_pin_, OUT);
 
   //disable device to start with
-  select_pin_.high();
-  out_pin_.low();
-  clock_pin_.low();
+  set_output(select_pin_, HIGH);
+  set_output(out_pin_, LOW);
+  set_output(clock_pin_, LOW);
 }
 
 int Mcp3208::ReadAdc(int channel){
@@ -50,28 +54,28 @@ int Mcp3208::ReadAdc(int channel){
   //allow channel selection
   command_bits|=((channel-1)<<3);
 
-  select_pin_.low(); // select adc
+  low(select_pin_); // select adc
   // setup bits to be written
   for (int i=7; i>=3; i--){
-    out_pin_.write((command_bits&1<<i) == 1);
+    set_output(out_pin_, command_bits&1<<i);
     //cycle clock
-    clock_pin_.high();
-    clock_pin_.low();
+    set_output(clock_pin_, HIGH);
+    set_output(clock_pin_, LOW);
   }
 
   //ignores 2 null bits
-  clock_pin_.high();
-  clock_pin_.low();
-  clock_pin_.high();
-  clock_pin_.low();
+  set_output(clock_pin_, HIGH);
+  set_output(clock_pin_, LOW);
+  set_output(clock_pin_, HIGH);
+  set_output(clock_pin_, LOW);
 
   //read bits from adc
   for (int i=11; i>=0; i--){
-    adcvalue+= in_pin_.read()? 1<<i : 0<<i;
+    adcvalue+= (get_state(in_pin_) << i);
     //cycle clock
-    clock_pin_.high();
-    clock_pin_.low();
+    set_output(clock_pin_, HIGH);
+    set_output(clock_pin_, LOW);
   }
-  select_pin_.high(); //turn off device
+  set_output(select_pin_, HIGH); //turn off device
   return adcvalue;
 }

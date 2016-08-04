@@ -18,8 +18,9 @@
 
 class RoboGarntServo {
  public:
+  static constexpr double STEERING_GAIN = 3.7;
 
-  RoboGarntServo (int, int, int, int, int, double);
+  RoboGarntServo (int, int, int, int, int);
 
   int LimitCheck (int);
 
@@ -30,7 +31,6 @@ class RoboGarntServo {
   int get_left() const { return left_max_; }
   int get_max() const { return left_max_; }
   int get_steer_mode() const { return steer_mode_; }
-  double get_steering_gain_() const { return steering_gain_; }
 
   void set_pin (int pin) { pin_ = pin; }
   void set_right (int right) { right_min_ = right; }
@@ -38,7 +38,6 @@ class RoboGarntServo {
   void set_neutral (int neutral) { neutral_ = neutral; }
   void set_left (int left) { left_max_ = left; }
   void set_steer_mode (int steer_mode) { steer_mode_ = steer_mode; }
-  void set_steering_gain (int steering_gain) { steering_gain_ = steering_gain; }
 
  private:
   int pin_;
@@ -46,20 +45,17 @@ class RoboGarntServo {
   int neutral_;
   int left_max_;
   int steer_mode_;
-  double steering_gain_;
 };
 
 #endif //ROBOPI_GARNT_CPP_ROBOGARNTSERVO_H
 
 RoboGarntServo::RoboGarntServo (int pin, int right_min, int neutral,
-                                int left_max, int steer_mode,
-                                double steering_gain) {
+                                int left_max, int steer_mode) {
   pin_ = pin;
   right_min_ = right_min;
   neutral_ = neutral;
   left_max_ = left_max;
   steer_mode_ = steer_mode;
-  steering_gain_ = steering_gain;
 }
 
 int RoboGarntServo::LimitCheck(int servo_setting) {
