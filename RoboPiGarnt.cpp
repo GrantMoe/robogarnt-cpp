@@ -1,5 +1,4 @@
 #include <PropWare/sensor/distance/ping.h>
-#include <math.h>
 
 #include "libpropeller/pwm32/pwm32.h"
 
@@ -8,14 +7,13 @@
 
 int main() {
 
-  int ir_voltages[IR_PER_GROUP];
   int ir_distances[IR_PER_GROUP];
   int us_distances[US_PER_GROUP];
   int nav_array[NAV_ARRAY_SIZE];
 
   int direction = FORWARD;
-  kAnteriorServo.steer_mode = FORWARD;
-  kPosteriorServo.steer_mode = REVERSE;
+  kAnteriorServo.steer_mode = NORMAL;
+  kPosteriorServo.steer_mode = FLIPPED;
   int servo_setting;
   int motor_setting;
 
@@ -27,13 +25,10 @@ int main() {
   for(int fake_index = 0; fake_index < 42069; fake_index++) {
 
     // get IR voltages from adc
-    for (int i = 0; i < IR_PER_GROUP; i++) {
-      ir_voltages[i] = adc.ReadAdc(ir_pins[direction][i]);
-    }
     // convert readings to distances
     // TODO: determine actual values
     for (int i = 0; i < IR_PER_GROUP; i++) {
-      ir_distances[i] = (6787 / (ir_voltages[i] - 3)) - 4;
+      ir_distances[i] = (6787 / (adc.ReadAdc(ir_pins[direction][i]) - 3)) - 4;
     }
 
     // get sonar
@@ -52,13 +47,21 @@ int main() {
 
     // simple instinctual counter-steering
     // TODO: introduce speed modifier(s)?
+
+    kAnteriorServo.steer_mode = direction == FORWARD ? NORMAL : FLIPPED;
+    kPosteriorServo.steer_mode = direction == FORWARD ? FLIPPED : NORMAL;
+
     for (Servo s : servos) {
       // steer
       servo_setting = s.neutral + s.steer_mode * (int) (STEERING_GAIN * (
-          ((MAX_SENSE_RANGE - nav_array[LEFT_LATERAL]) * cos(135))
-              + ((MAX_SENSE_RANGE - nav_array[LEFT_MEDIAL]) * cos(105))
-              + ((MAX_SENSE_RANGE - nav_array[RIGHT_MEDIAL]) * cos(75))
-              + ((MAX_SENSE_RANGE - nav_array[RIGHT_LATERAL]) * cos(45))));
+          ((MAX_SENSE_RANGE - nav_array[LEFT_LATERAL])
+              * IR_COS[LEFT_LATERAL])
+              + ((MAX_SENSE_RANGE - nav_array[LEFT_MEDIAL])
+                  * IR_COS[LEFT_MEDIAL])
+              + ((MAX_SENSE_RANGE - nav_array[RIGHT_MEDIAL])
+                  * IR_COS[RIGHT_MEDIAL])
+              + ((MAX_SENSE_RANGE - nav_array[RIGHT_LATERAL])
+                  * IR_COS[RIGHT_LATERAL])));
 
       if (servo_setting > s.left_max)
         servo_setting = s.left_max;
@@ -72,24 +75,36 @@ int main() {
     // throttle
     if (direction == FORWARD) {
       motor_setting = MOTOR_FORWARD_MAX - (int) (THROTTLE_GAIN * (
-        ((MAX_SENSE_RANGE - nav_array[LEFT_LATERAL]) * sin(135))
-          + ((MAX_SENSE_RANGE - nav_array[LEFT_MEDIAL]) * sin(105))
-          + ((MAX_SENSE_RANGE - nav_array[RIGHT_MEDIAL]) * sin(75))
-          + ((MAX_SENSE_RANGE - nav_array[RIGHT_LATERAL]) * sin(45))));
+        ((MAX_SENSE_RANGE - nav_array[LEFT_LATERAL])
+            * IR_SIN[LEFT_LATERAL])
+          + ((MAX_SENSE_RANGE - nav_array[LEFT_MEDIAL])
+              * IR_SIN[LEFT_MEDIAL])
+          + ((MAX_SENSE_RANGE - nav_array[RIGHT_MEDIAL])
+              * IR_SIN[RIGHT_MEDIAL])
+          + ((MAX_SENSE_RANGE - nav_array[RIGHT_LATERAL])
+              * IR_SIN[RIGHT_LATERAL])));
+
       if (motor_setting < (MOTOR_NEUTRAL + MOTOR_DEADBAND)) {
         motor_setting = MOTOR_NEUTRAL;
         direction = REVERSE;
       }
+
     } else if (direction == REVERSE) {
       motor_setting = MOTOR_REVERSE_MIN + (int) (THROTTLE_GAIN * (
-        ((MAX_SENSE_RANGE - nav_array[LEFT_LATERAL]) * sin(135))
-          + ((MAX_SENSE_RANGE - nav_array[LEFT_MEDIAL]) * sin(105))
-          + ((MAX_SENSE_RANGE - nav_array[RIGHT_MEDIAL]) * sin(75))
-          + ((MAX_SENSE_RANGE - nav_array[RIGHT_LATERAL]) * sin(45))));
+        ((MAX_SENSE_RANGE - nav_array[LEFT_LATERAL])
+            * IR_SIN[LEFT_LATERAL])
+          + ((MAX_SENSE_RANGE - nav_array[LEFT_MEDIAL])
+              * IR_SIN[LEFT_MEDIAL])
+          + ((MAX_SENSE_RANGE - nav_array[RIGHT_MEDIAL])
+              * IR_SIN[RIGHT_MEDIAL])
+          + ((MAX_SENSE_RANGE - nav_array[RIGHT_LATERAL])
+              * IR_SIN[RIGHT_LATERAL])));
+
       if (motor_setting > (MOTOR_NEUTRAL - MOTOR_DEADBAND)) {
         motor_setting = MOTOR_NEUTRAL;
         direction = FORWARD;
       }
+
     } else {
       motor_setting = MOTOR_NEUTRAL;
     }

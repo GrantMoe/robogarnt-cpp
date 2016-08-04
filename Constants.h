@@ -5,6 +5,13 @@
 #ifndef BASICGARNT_CONSTANTS_H
 #define BASICGARNT_CONSTANTS_H
 
+// navigation
+#define FORWARD 0
+#define REVERSE 1
+#define NAV_ARRAY_SIZE 4
+#define NORMAL 1
+#define FLIPPED -1
+
 // robot anatomy
 #define ANTERIOR 0
 #define POSTERIOR 1
@@ -13,7 +20,7 @@
 #define LEFT_LATERAL 2
 #define RIGHT_LATERAL 3
 
-// TODO: meh.
+// TODO: set
 // sensors
 #define MAX_SENSE_RANGE 150
 
@@ -43,11 +50,21 @@ const int ir_pins[IR_GROUPS][IR_PER_GROUP] = {  // TODO: real pins
   {4, 5, 6, 7}   // posterior
 };
 
-// todo: meh? could be better with the -1 use for the ~cute~ multiplier.
-// navigation
-#define FORWARD 1
-#define REVERSE -1
-#define NAV_ARRAY_SIZE 4
+// IR_COS[IR_PER_GROUP] = {cos(105), cos(75), cos(135), cos(45)}
+//
+// cos(45) = 0.70710678118
+// cos(75) = 0.2588190451
+// cos(105) = -0.2588190451
+// cos(135) = -0.70710678118
+const double IR_COS[IR_PER_GROUP] = {-0.2588, 0.2588, -0.7071, 0.7071};
+
+// IR_SIN[IR_PER_GROUP] = {sin(105), sin(75), sin(135), sin(45)}
+//
+// sin(45) = 0.70710678118
+// sin(75) = 0.96592582628
+// sin(105) = 0.96592582628
+// sin(135) = 0.70710678118
+const double IR_SIN[IR_PER_GROUP] = {0.9659, 0.9659, 0.7071, 0.7071};
 
 struct Servo {
   int pin;
@@ -58,7 +75,7 @@ struct Servo {
 };
 
 // PWM pins
-
+// TODO: verify PWM ratings
 //#define SERVO_MIN 1000
 //#define SERVO_NEUTRAL 1500
 //#define SERVO_MAX 2000
@@ -73,6 +90,7 @@ struct Servo {
 #define NUM_SERVOS 2
 #define STEERING_GAIN 3.7
 
+// TODO: real pins
 const int servo_pins[NUM_SERVOS] = {1 , 2};
 Servo kAnteriorServo = {servo_pins[ANTERIOR],
                         SERVO_MIN_ANTERIOR,
@@ -85,12 +103,12 @@ Servo kPosteriorServo = {servo_pins[POSTERIOR],
 
 Servo servos[NUM_SERVOS] = {kAnteriorServo, kPosteriorServo};
 
-// TODO: deadbands
 // #define MOTOR_PIN 0
 // #define MOTOR_REVERSE_MIN 900
 // #define MOTOR_NEUTRAL 1500
 // #define MOTOR_FORWARD_MAX 2100
 // #define MOTOR_DEADBAND 25
+
 #define MOTOR_PIN 0
 #define MOTOR_REVERSE_MIN 900
 #define MOTOR_NEUTRAL 1495
