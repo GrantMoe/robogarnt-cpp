@@ -20,6 +20,8 @@
 #define LEFT_LATERAL 2
 #define RIGHT_LATERAL 3
 
+#define POWER_PIN 4
+
 // TODO: set
 // sensors
 #define MAX_SENSE_RANGE 150
@@ -66,6 +68,8 @@ const double IR_COS[IR_PER_GROUP] = {-0.2588, 0.2588, -0.7071, 0.7071};
 // sin(135) = 0.70710678118
 const double IR_SIN[IR_PER_GROUP] = {0.9659, 0.9659, 0.7071, 0.7071};
 
+
+/*
 struct Servo {
   int pin;
   int right_min;
@@ -88,8 +92,9 @@ struct Servo {
 #define SERVO_MAX_POSTERIOR 1964
 
 #define NUM_SERVOS 2
-#define STEERING_GAIN 3.7
-
+*/
+ #define STEERING_GAIN 3.7
+/*
 // TODO: real pins
 const int servo_pins[NUM_SERVOS] = {1 , 2};
 Servo kAnteriorServo = {servo_pins[ANTERIOR],
@@ -102,6 +107,8 @@ Servo kPosteriorServo = {servo_pins[POSTERIOR],
                          SERVO_MAX_POSTERIOR};
 
 Servo servos[NUM_SERVOS] = {kAnteriorServo, kPosteriorServo};
+
+ */
 
 // #define MOTOR_PIN 0
 // #define MOTOR_REVERSE_MIN 900

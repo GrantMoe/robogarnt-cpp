@@ -1,9 +1,10 @@
 #include <PropWare/sensor/distance/ping.h>
 
 #include "libpropeller/pwm32/pwm32.h"
-
+#include "simpletools.h"
 #include "Mcp3208.h"
 #include "Constants.h"
+#include "Servo.h"
 
 int main() {
 
@@ -12,8 +13,14 @@ int main() {
   int nav_array[NAV_ARRAY_SIZE];
 
   int direction = FORWARD;
-  kAnteriorServo.steer_mode = NORMAL;
-  kPosteriorServo.steer_mode = FLIPPED;
+
+  Servo anterior_servo(1, 1026, 1490, 1964, NORMAL);
+  Servo posterior_servo(2, 1026, 1490, 1964, FLIPPED);
+  Servo servos[] = {anterior_servo, posterior_servo};
+
+
+  //kAnteriorServo.steer_mode = NORMAL;
+  //kPosteriorServo.steer_mode = FLIPPED;
   int servo_setting;
   int motor_setting;
 
@@ -22,7 +29,13 @@ int main() {
   libpropeller::PWM32 pwm;
   pwm.Start();
 
-  for(int fake_index = 0; fake_index < 42069; fake_index++) {
+  bool standby = input(POWER_PIN) == 0;
+
+  for (int fake_index = 0; fake_index < 42069; fake_index++) {
+
+    if (standby) {
+      continue;
+    }
 
     // get IR voltages from adc
     // convert readings to distances
@@ -48,12 +61,17 @@ int main() {
     // simple instinctual counter-steering
     // TODO: introduce speed modifier(s)?
 
-    kAnteriorServo.steer_mode = direction == FORWARD ? NORMAL : FLIPPED;
-    kPosteriorServo.steer_mode = direction == FORWARD ? FLIPPED : NORMAL;
+    // kAnteriorServo.steer_mode = direction == FORWARD ? NORMAL : FLIPPED;
+    // kPosteriorServo.steer_mode = direction == FORWARD ? FLIPPED : NORMAL;
 
-    for (Servo s : servos) {
+    anterior_servo.set_steer_mode(direction == FORWARD ? NORMAL : FLIPPED);
+    posterior_servo.set_steer_mode(direction == FORWARD ? FLIPPED : NORMAL);
+
+    //for (Servo s : servos) {
+    for (int i = 0; i < 2; i++) {
       // steer
-      servo_setting = s.neutral + s.steer_mode * (int) (STEERING_GAIN * (
+      servo_setting = servos[i].get_neutral() + servos[i].get_steer_mode()
+          * (int) (STEERING_GAIN * (
           ((MAX_SENSE_RANGE - nav_array[LEFT_LATERAL])
               * IR_COS[LEFT_LATERAL])
               + ((MAX_SENSE_RANGE - nav_array[LEFT_MEDIAL])
@@ -63,13 +81,16 @@ int main() {
               + ((MAX_SENSE_RANGE - nav_array[RIGHT_LATERAL])
                   * IR_COS[RIGHT_LATERAL])));
 
-      if (servo_setting > s.left_max)
-        servo_setting = s.left_max;
-      if (servo_setting < s.right_min)
-        servo_setting = s.right_min;
+      if (servo_setting > servos[i].get_max())
+        servo_setting = servos[i].get_max();
+      if (servo_setting < servos[i].get_min())
+        servo_setting = servos[i].get_min();
+
+      // cut off extreme (out of rance) values
+      servo_setting = servos[i].LimitCheck(servo_setting);
 
       // set servos
-      pwm.Servo(s.pin, servo_setting);
+      pwm.Servo(servos[i].get_pin(), servo_setting);
     }
 
     // throttle
