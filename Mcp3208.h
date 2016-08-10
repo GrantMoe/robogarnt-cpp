@@ -1,6 +1,12 @@
 //
 // http://playground.arduino.cc/Code/MCP3208
 //
+// #define ADC_OUT_PIN 24
+// #define ADC_IN_PIN 25
+// #define ADC_CLOCK_PIN 26
+// #define ADC_SEL_PIN 27
+//
+
 
 #ifndef BASICGARNT_MCP3208_H
 #define BASICGARNT_MCP3208_H

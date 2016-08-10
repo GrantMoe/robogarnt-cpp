@@ -39,10 +39,10 @@ PropWare::Ping us_sensors[US_GROUPS][US_PER_GROUP] = { // TODO: real pins
 };
 
 // adc pins
-#define ADC_OUT_PIN 24
-#define ADC_IN_PIN 25
-#define ADC_CLOCK_PIN 26
-#define ADC_SEL_PIN 27
+//#define ADC_OUT_PIN 24
+//#define ADC_IN_PIN 25
+//#define ADC_CLOCK_PIN 26
+//#define ADC_SEL_PIN 27
 
 // infrared sensors
 #define IR_GROUPS 2

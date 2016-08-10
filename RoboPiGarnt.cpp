@@ -24,7 +24,8 @@ int main() {
   int servo_setting;
   int motor_setting;
 
-  Mcp3208 adc(ADC_OUT_PIN, ADC_IN_PIN, ADC_CLOCK_PIN, ADC_SEL_PIN);
+  // Mcp3208 adc(ADC_OUT_PIN, ADC_IN_PIN, ADC_CLOCK_PIN, ADC_SEL_PIN)
+  Mcp3208 adc(24, 25, 26, 27);
 
   libpropeller::PWM32 pwm;
   pwm.Start();
